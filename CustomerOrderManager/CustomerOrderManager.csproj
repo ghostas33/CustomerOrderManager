@@ -9,6 +9,45 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.18"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+
+        <!-- entity framework core -->
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />
+
+        <!-- cqrs and mediatr -->
+        <PackageReference Include="MediatR" Version="12.2.0" />
+
+        <!-- validation -->
+        <PackageReference Include="FluentValidation" Version="11.8.0" />
+        <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+
+        <!-- auto mapper -->
+        <PackageReference Include="AutoMapper" Version="12.0.1" />
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+
+        <!-- unit testing -->
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Commands\" />
+        <Folder Include="Controllers\" />
+        <Folder Include="Data\Configurations\" />
+        <Folder Include="Data\DbContext\" />
+        <Folder Include="Data\Migrations\" />
+        <Folder Include="Extensions\" />
+        <Folder Include="Handlers\" />
+        <Folder Include="Middleware\" />
+        <Folder Include="Models\Enums\" />
+        <Folder Include="Queries\" />
+        <Folder Include="Repositories\Implementations\" />
+        <Folder Include="Repositories\Interfaces\" />
+        <Folder Include="Services\Implementations\" />
+        <Folder Include="Services\Interfaces\" />
+        <Folder Include="Validators\" />
     </ItemGroup>
 
 </Project>
