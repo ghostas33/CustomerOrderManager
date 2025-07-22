@@ -1,77 +1,169 @@
 using Microsoft.AspNetCore.Mvc;
-using CustomerOrderManager.Repository;
-using CustomerOrderManager.Models.Entities;
+using MediatR;
+using AutoMapper;
+using CustomerOrderManager.Commands;
+using CustomerOrderManager.Queries;
+using CustomerOrderManager.Model.DTO;
+using CustomerOrderManager.Service.Interfaces;
 
 namespace CustomerOrderManager.Controller;
 
+/// <summary>
+/// Orders management controller
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class OrdersController : ControllerBase
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMediator _mediator;
+    private readonly IOrderService _orderService;
+    private readonly IMapper _mapper;
 
-    public OrdersController(IUnitOfWork unitOfWork)
+    public OrdersController(IMediator mediator, IOrderService orderService, IMapper mapper)
     {
-        _unitOfWork = unitOfWork;
+        _mediator = mediator;
+        _orderService = orderService;
+        _mapper = mapper;
     }
 
+    /// <summary>
+    /// Get all orders
+    /// </summary>
+    /// <returns>List of orders</returns>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrders()
     {
-        var orders = await _unitOfWork.Orders.FindAllAsync();
+        var query = new GetAllOrdersQuery();
+        var orders = await _mediator.Send(query);
         return Ok(orders);
     }
 
+    /// <summary>
+    /// Get order by ID
+    /// </summary>
+    /// <param name="id">Order ID</param>
+    /// <returns>Order details</returns>
     [HttpGet("{id}")]
-    public async Task<ActionResult<Order>> GetOrder(int id)
+    public async Task<ActionResult<OrderDto>> GetOrder(int id)
     {
-        var order = await _unitOfWork.Orders.FindByIdAsync(id);
+        var query = new GetOrderByIdQuery { Id = id };
+        var order = await _mediator.Send(query);
         if (order == null)
             return NotFound();
         return Ok(order);
     }
 
+    /// <summary>
+    /// Create a new order
+    /// </summary>
+    /// <param name="orderDto">Order data</param>
+    /// <returns>Created order</returns>
     [HttpPost]
-    public async Task<ActionResult<Order>> CreateOrder(Order order)
+    public async Task<ActionResult<OrderDto>> CreateOrder(CreateOrderDto orderDto)
     {
-        await _unitOfWork.Orders.SaveAsync(order);
-        await _unitOfWork.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+        // Validate business rules
+        var validationResult = await _orderService.ValidateOrderDataAsync(orderDto);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors);
+        }
+
+        var command = _mapper.Map<CreateOrderCommand>(orderDto);
+        var createdOrder = await _mediator.Send(command);
+        return CreatedAtAction(nameof(GetOrder), new { id = createdOrder.Id }, createdOrder);
     }
 
+    /// <summary>
+    /// Update an existing order
+    /// </summary>
+    /// <param name="id">Order ID</param>
+    /// <param name="orderDto">Updated order data</param>
+    /// <returns>Updated order</returns>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateOrder(int id, Order order)
+    public async Task<ActionResult<OrderDto>> UpdateOrder(int id, UpdateOrderDto orderDto)
     {
-        if (id != order.Id)
-            return BadRequest();
+        // Check if order can be modified
+        var canModify = await _orderService.CanModifyOrderAsync(id);
+        if (!canModify)
+        {
+            return BadRequest("Order cannot be modified after 24 hours of creation");
+        }
 
-        await _unitOfWork.Orders.SaveAsync(order);
-        await _unitOfWork.SaveChangesAsync();
-        return NoContent();
+        var command = _mapper.Map<UpdateOrderCommand>(orderDto);
+        command.Id = id;
+        
+        try
+        {
+            var updatedOrder = await _mediator.Send(command);
+            return Ok(updatedOrder);
+        }
+        catch (ArgumentException)
+        {
+            return NotFound();
+        }
     }
 
+    /// <summary>
+    /// Delete an order
+    /// </summary>
+    /// <param name="id">Order ID</param>
+    /// <returns>Success status</returns>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOrder(int id)
     {
-        await _unitOfWork.Orders.DeleteByIdAsync(id);
-        await _unitOfWork.SaveChangesAsync();
+        var command = new DeleteOrderCommand { Id = id };
+        var result = await _mediator.Send(command);
+        
+        if (!result)
+        {
+            return NotFound();
+        }
+        
         return NoContent();
     }
 
+    /// <summary>
+    /// Get orders by customer ID
+    /// </summary>
+    /// <param name="customerId">Customer ID</param>
+    /// <returns>Customer orders</returns>
     [HttpGet("customer/{customerId}")]
-    public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByCustomer(int customerId)
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrdersByCustomer(int customerId)
     {
-        var orders = await _unitOfWork.Orders.FindByCustomerIdAsync(customerId);
+        var query = new GetOrdersByCustomerIdQuery { CustomerId = customerId };
+        var orders = await _mediator.Send(query);
         return Ok(orders);
     }
 
-    // Απαίτηση άσκησης: Support για iteration by date
+    /// <summary>
+    /// Get orders by date range - Support για iteration by date
+    /// </summary>
+    /// <param name="startDate">Start date</param>
+    /// <param name="endDate">End date</param>
+    /// <returns>Orders in date range</returns>
     [HttpGet("by-date-range")]
-    public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByDateRange(
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrdersByDateRange(
         [FromQuery] DateTime startDate, 
         [FromQuery] DateTime endDate)
     {
-        var orders = await _unitOfWork.Orders.FindByDateRangeAsync(startDate, endDate);
+        var query = new GetOrdersByDateRangeQuery { StartDate = startDate, EndDate = endDate };
+        var orders = await _mediator.Send(query);
         return Ok(orders);
+    }
+
+    /// <summary>
+    /// Get order statistics for a date range
+    /// </summary>
+    /// <param name="startDate">Start date</param>
+    /// <param name="endDate">End date</param>
+    /// <returns>Order statistics</returns>
+    [HttpGet("statistics")]
+    public async Task<ActionResult<OrderStatisticsDto>> GetOrderStatistics(
+        [FromQuery] DateTime startDate, 
+        [FromQuery] DateTime endDate)
+    {
+        var statistics = await _orderService.GetOrderStatisticsAsync(startDate, endDate);
+        return Ok(statistics);
     }
 }

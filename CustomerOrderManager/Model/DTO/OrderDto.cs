@@ -1,4 +1,4 @@
-namespace CustomerOrderManager.Models.DTOs;
+namespace CustomerOrderManager.Model.DTO;
 
 // responses
 public class OrderDto
@@ -43,4 +43,27 @@ public class CreateOrderItemDto
 {
     public int ProductId { get; set; }
     public int Quantity { get; set; }
+}
+
+/// <summary>
+/// Product sales statistics DTO
+/// </summary>
+public class ProductSalesDto
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public int QuantitySold { get; set; }
+    public decimal Revenue { get; set; }
+}
+
+/// <summary>
+/// Order statistics DTO
+/// </summary>
+public class OrderStatisticsDto
+{
+    public int TotalOrders { get; set; }
+    public decimal TotalRevenue { get; set; }
+    public decimal AverageOrderValue { get; set; }
+    public int TotalItems { get; set; }
+    public ProductSalesDto? TopSellingProduct { get; set; }
 }

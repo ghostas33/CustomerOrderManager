@@ -1,0 +1,40 @@
+ASSUMPTIONS 
+=============
+
+BUSINESS LOGIC:
+- Cannot delete customers if they have orders
+- Greek postal codes only that have 5 digits
+- Orders can be modified for some time after creation
+- Order total calculated automatically from items
+- Products in order items must exist
+- Customer must exist when creating order
+- Product prices must be > 0
+- Product names required
+- No inventory management. We assume that products will always be available
+
+TECHNICAL STUFF:
+- CQRS with same database for read and write 
+- Everything synchronous
+- Repository + Unit of Work pattern
+- EF Core + PostgreSQL
+- UTC timestamps
+- Hard deletes (no soft delete)
+- RESTful API, standard HTTP
+- JSON only
+- No authentication system
+- Standard error responses
+- No pagination
+- FluentValidation for input validation
+- Validation at command level
+- Domain services for complex business rules
+
+DATA MODEL:
+- Single address field for customers
+- Postal code validation for Greek format postal codes
+- Order date defaults to UTC now
+- Total price stored
+- Simple product model (name and price)
+- No categories or inventory
+
+
+

@@ -1,4 +1,4 @@
-namespace CustomerOrderManager.Models.DTOs;
+namespace CustomerOrderManager.Model.DTO;
 
 // response
 public class ProductDto

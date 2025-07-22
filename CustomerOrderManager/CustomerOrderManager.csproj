@@ -26,21 +26,14 @@
         <!-- auto mapper -->
         <PackageReference Include="AutoMapper" Version="12.0.1" />
         <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-
-        <!-- unit testing -->
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
     </ItemGroup>
 
     <ItemGroup>
         <Folder Include="Commands\" />
         <Folder Include="Controller\" />
-        <Folder Include="Data\Configurations\" />
-        <Folder Include="Data\Migrations\" />
         <Folder Include="Extensions\" />
         <Folder Include="Handlers\" />
-        <Folder Include="Middleware\" />
-        <Folder Include="Model\Enums\" />
         <Folder Include="Queries\" />
         <Folder Include="Service\Implementations\" />
         <Folder Include="Service\Interfaces\" />
